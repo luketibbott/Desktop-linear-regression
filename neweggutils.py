@@ -1,4 +1,4 @@
-# This is a utility file to support the scraping of Newegg
+# This is a utility file to support the scraping and cleaning of Newegg data
 import pandas as pd
 import numpy as np
 import requests
@@ -192,20 +192,45 @@ def processor_brand(processor):
     # Return the first word in the processor description (usually the brand)
     return processor.split(' ')[0]
 
+def num_cores(processor):
+    # Returns the number of cores in a processor
+    processor = processor.upper()
+    
+    if ('6-CORE' in processor) or ('6 CORE' in processor) or ('I7' in processor):
+        return 6
+    elif ('4-CORE' in processor) or ('4 CORE' in processor) or ('QUAD' in processor) or ('I5' in processor):
+        return 4
+    elif ('2-CORE' in processor) or ('2 CORE' in processor) or ('DUAL' in processor) or ('DUO' in processor) or ('I3' in processor):
+        return 2
+    elif ('SINGLE' in processor) or ('PENTIUM' in processor):
+        return 1
+    else:
+        return np.nan
+
 def ram_cap(memory):
     # Returns RAM capacity
-    return memory.upper().split('GB')[0]
+    memory = memory.upper()
+
+    mem_list = memory.split(' ')
+
+    try:
+        gb_ind = mem_list.index('GB')
+        
+        return mem_list[gb_ind - 1]
+    except:
+        return np.nan
 
 def ram_type(memory):
     # Returns type of RAM (DDR2, DDR3, or DDR4)
     memory = memory.upper()
     if 'DDR2' in memory:
         return 'ddr2'
-    if 'DDR3' in memory:
+    elif 'DDR3' in memory:
         return 'ddr3'
-    # DDR4 is industry standard these days, we default to it
-    else:
+    elif 'DDR4' in memory:
         return 'ddr4'
+    else:
+        return np.nan
 
 def disk_cap(storage):
     # Returns the disk capacity of a hard disk (will also grab first letter of storage unit GB or TB)
