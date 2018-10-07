@@ -110,7 +110,7 @@ def one_page_scrape(url):
     array_page_html = pd.DataFrame(data = [r.text], columns=['price_html'])
     prices_df = prices_df.append(array_page_html)
     
-    soup = BeautifulSoup(r.text, 'lxml')
+    soup = bs4.BeautifulSoup(r.text, 'lxml')
     
     # Grab array holding all 96 products
     product_array = soup.find_all('div', class_='item-container')
@@ -238,15 +238,30 @@ def disk_cap(storage):
     stor_split = storage.split('B')
     return stor_split[0]
 
-def ssd_or_hdd(storage):
+def ssd_or_hdd(ssd):
     # Check contents of storage for keywords indicating disk type
-    storage = storage.upper()
-    # Some systems have both SSD and HDD in 
-    if ('+' in storage) or ('plus' in storage):
-        return 'both'
-    elif 'SSD' in storage:
+    ssd = ssd.upper()
+    
+    if ssd == 'NO':
+        return 'hdd'
+    elif ('GB' in ssd) or ('TB' in ssd):
         return 'ssd'
-    elif 'RPM' in storage or 'HDD' in storage:
-        return 'hdd'
     else:
-        return 'hdd'
+        return np.nan
+
+def storage_cap(storage):
+    cap = 0
+
+    storage = storage.split(' ')
+    try:
+        num = int(storage[0])
+    except ValueError:
+        return np.nan
+    units = storage[1]
+
+    if units.upper() == 'GB':
+        cap += num
+    elif units.upper() == 'TB':
+        cap += 1024*num
+
+    return cap
