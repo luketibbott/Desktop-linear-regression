@@ -29,6 +29,9 @@ def get_components(html):
     for s in soup.find_all('link', href=True):
         if s['rel'][0] == 'canonical':
             new_link = s['href']
+            break
+
+    new_link = new_link + '&ignorebbr=1'
 
     #new_link = f'https://www.newegg.com/Product/Product.aspx?Item={item_no}&ignorebbr=1'
     # Narrow down to specifications part of page
@@ -162,18 +165,19 @@ def extract_load(components, prices):
     
     components = components.apply(lambda x: get_components(x[0]), axis=1)
 
-    prices = prices.apply(lambda x: get_prices_and_links(x[0]))
+    prices = prices.apply(lambda x: get_prices_and_links(x[0]), axis=1)
+
+    concat_prices = list()
+    
+    for price in prices:
+        concat_prices.extend(price)
     
     components = components.dropna()
-    prices = prices.dropna()
     
     components = pd.DataFrame.from_records(components.values)    
     
     # Concatenate all rows in to one list of prices and links
-    concat_prices = []
     
-    for price in prices:
-        concat_prices.extend(price)
                 
     prices = pd.DataFrame(concat_prices)
     prices.columns = ['price', 'link']
