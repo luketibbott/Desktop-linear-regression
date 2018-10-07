@@ -265,3 +265,44 @@ def storage_cap(storage):
         cap += 1024*num
 
     return cap
+
+def get_brand(brand):
+    brand = brand.upper()
+
+    if ('LENOVO' in brand) or ('THINKCENTRE' in brand):
+        return 'LENOVO'
+    elif ('HP' in brand) or ('HEWLETT-PACKARD' in brand):
+        return 'HP'
+    elif 'DELL' in brand:
+        return 'DELL'
+    else:
+        return np.nan
+
+def clean_store_cap(cap):
+    
+    pat = re.compile(r'\d*')
+
+    try:
+        num = re.findall(pat, cap)[0]
+        num = int(num)
+    except:
+        return np.nan
+
+    if 'TB' in cap:
+        return num*1024
+    elif 'GB' in cap:
+        return num
+
+def graphics_type(graphics):
+    # Decides if graphics is AMD, Nvidia, or integrated based on keywords
+    graphics = graphics.upper()
+
+    if ('INTEL' in graphics) or ('INTEGRATED' in graphics):
+        return 'INTEGRATED'
+    elif 'NVIDIA' in graphics:
+        return 'NVIDIA'
+    elif 'AMD' in graphics:
+        return 'AMD'
+    else:
+        return np.nan
+    
