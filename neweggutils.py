@@ -137,6 +137,43 @@ def scrape_all(url_list, master_prices, master_components, up_to):
         
     return master_prices, master_components
 
+def extract_load(components, prices):
+    '''
+        Parses HTML of two dataframes and merges them in to a single dataframe.
+        ====Parameters====
+        components: html of individual computer pages
+        prices: html of product array page with 96 products
+        ====Returns====
+        merged: dataframe with prices corresponding to components
+    '''
+    try:
+        prices.drop(labels=['Unnamed: 0', 'component_html'], axis=1, inplace=True)
+        components.drop(labels=['Unnamed: 0', 'price_html'], axis=1, inplace=True)
+
+    except (KeyError, ValueError):
+        pass
+    
+    components = components.apply(lambda x: neweggutils.get_components(x[0]), axis=1)
+    prices = prices.apply(lambda x: neweggutils.get_prices_and_links(x[0]))# axis=1) if prices is df
+    
+    components = components.dropna()
+    prices = prices.dropna()
+    
+    components = pd.DataFrame.from_records(components.values)    
+    
+    # Concatenate all rows in to one list of prices and links
+    concat_prices = []
+    
+    for price in prices:
+        concat_prices.extend(price)
+                
+    prices = pd.DataFrame(concat_prices)
+    prices.columns = ['price', 'link']
+    
+    merged = prices.merge(components, on='link')
+    
+    return merged
+
 # ============Cleaning functions===========
 
 def processor_brand(processor):
