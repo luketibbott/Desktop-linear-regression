@@ -24,11 +24,13 @@ def get_components(html):
        this_computer: OrderedDict mapping this computer's variables to values
     '''
     soup = bs4.BeautifulSoup(html, 'lxml')
+    new_link = None
     # Grab link from product page
-    alt_link = soup.find('link', href=True)['href']
-    item_no = alt_link.split('/')[-1]
+    for s in soup.find_all('link', href=True):
+        if s['rel'][0] == 'canonical':
+            new_link = s['href']
 
-    new_link = f'https://www.newegg.com/Product/Product.aspx?Item={item_no}&ignorebbr=1'
+    #new_link = f'https://www.newegg.com/Product/Product.aspx?Item={item_no}&ignorebbr=1'
     # Narrow down to specifications part of page
     specs = soup.find('div', class_='plinks')
 
@@ -146,15 +148,21 @@ def extract_load(components, prices):
         ====Returns====
         merged: dataframe with prices corresponding to components
     '''
-    try:
-        prices.drop(labels=['Unnamed: 0', 'component_html'], axis=1, inplace=True)
-        components.drop(labels=['Unnamed: 0', 'price_html'], axis=1, inplace=True)
 
-    except (KeyError, ValueError):
-        pass
     
-    components = components.apply(lambda x: neweggutils.get_components(x[0]), axis=1)
-    prices = prices.apply(lambda x: neweggutils.get_prices_and_links(x[0]))# axis=1) if prices is df
+    # Some dataframes have Unnamed: 0 column
+    try:
+        prices.drop(labels=['Unnamed: 0.1', 'Unnamed: 0', 'component_html'], axis=1, inplace=True)
+        components.drop(labels=['Unnamed: 0.1', 'Unnamed: 0', 'price_html'], axis=1, inplace=True)
+
+    # Some don't
+    except (KeyError, ValueError):
+        prices.drop(labels=['component_html'], axis=1, inplace=True)
+        components.drop(labels=['price_html'], axis=1, inplace=True)
+    
+    components = components.apply(lambda x: get_components(x[0]), axis=1)
+
+    prices = prices.apply(lambda x: get_prices_and_links(x[0]))
     
     components = components.dropna()
     prices = prices.dropna()
@@ -170,7 +178,7 @@ def extract_load(components, prices):
     prices = pd.DataFrame(concat_prices)
     prices.columns = ['price', 'link']
     
-    merged = prices.merge(components, on='link')
+    merged = prices.merge(components, on='link', how='outer')
     
     return merged
 
