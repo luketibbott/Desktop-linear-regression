@@ -242,12 +242,10 @@ def ssd_or_hdd(ssd):
     # Check contents of storage for keywords indicating disk type
     ssd = ssd.upper()
     
-    if ssd == 'NO':
-        return 'hdd'
-    elif ('GB' in ssd) or ('TB' in ssd):
+    if ('GB' in ssd) or ('TB' in ssd):
         return 'ssd'
     else:
-        return np.nan
+        return 'hdd'
 
 def storage_cap(storage):
     cap = 0
@@ -265,6 +263,10 @@ def storage_cap(storage):
         cap += 1024*num
 
     return cap
+
+def storage_cap2(storage):
+    units = re.findall(r'(GB|TB)', storage)
+    
 
 def get_brand(brand):
     brand = brand.upper()
