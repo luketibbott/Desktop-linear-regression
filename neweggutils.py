@@ -306,3 +306,12 @@ def graphics_type(graphics):
     else:
         return np.nan
     
+def form_factor(form):
+    form = form.upper()
+
+    if ('TOWER' in form) or ('DESKTOP' in form):
+        return 'TOWER'
+    elif 'NAN' in form:
+        return np.nan
+    else:
+        return 'SMALL'
